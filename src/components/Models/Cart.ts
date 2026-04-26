@@ -1,9 +1,9 @@
 import { IProduct } from '../../types';
 
 export class Cart {
-  cartProducts: IProduct[] = [];
+  protected cartProducts: IProduct[] = [];
 
-  constructor(products: IProduct[]) {
+   saveAllProducts(products: IProduct[]): void{
     this.cartProducts = products;
   }
 
@@ -16,7 +16,7 @@ export class Cart {
   }
 
   deleteProduct(product: IProduct): void {
-    this.cartProducts = this.cartProducts.filter((x) => x.id !== product.id);
+    this.cartProducts = this.cartProducts.filter((item) => item.id !== product.id);
   }
 
   deleteAll(): void {
@@ -24,9 +24,7 @@ export class Cart {
   }
 
   getAllPrice(): number {
-    let allPrice: number = 0;
-    this.cartProducts.forEach((x) => (allPrice += x.price || 0));
-    return allPrice;
+     return this.cartProducts.reduce((acc, item) => acc + (item.price ?? 0), 0);
   }
 
   getAllCount(): number {
@@ -34,6 +32,6 @@ export class Cart {
   }
 
   checkProduct(id: string): boolean {
-    return this.cartProducts.some((x) => x.id === id);
+    return this.cartProducts.some((item) => item.id === id);
   }
 }

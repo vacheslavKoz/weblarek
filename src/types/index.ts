@@ -14,7 +14,7 @@ export interface IProduct {
   price: number | null;
 }
 
-export type TPayment = 'cash' | 'card' | 'online' | '';
+export type TPayment = 'cash' | 'card' | '';
 
 export interface IBuyer {
   payment: TPayment;
@@ -23,25 +23,16 @@ export interface IBuyer {
   address: string;
 }
 
-export type ValidationErrors = {
-  payment?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-};
+export type ValidationErrors = Partial<Record<keyof IBuyer, string>>;
 
 export interface ObjWithProducts {
   total: number;
   items: IProduct[];
 }
 
-export interface IOrderData {
-  payment: string;
-  email: string;
-  phone: string;
-  address: string;
-  total: number;
-  items: string[];
+export interface IOrderData extends IBuyer {
+    total: number;
+    items: string[];
 }
 
 export interface IOrderResponse {

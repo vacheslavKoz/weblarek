@@ -1,22 +1,17 @@
 import { ObjWithProducts, IOrderData, IOrderResponse, IApi } from '../../types';
 
 export class ServerApi {
-  allProducts: ObjWithProducts = { total: 0, items: [] };
-  objectForWorkwithServer: IApi;
-  receiveAnswerObject!: IOrderResponse;
+  protected objectForWorkwithServer: IApi;
 
   constructor(object: IApi) {
     this.objectForWorkwithServer = object;
   }
 
-  async getAllProducts(settingUrl: string): Promise<ObjWithProducts> {
-    const allProducts = await this.objectForWorkwithServer.get<ObjWithProducts>(settingUrl);
-    this.allProducts = allProducts;
-    return this.allProducts;
+  async getAllProducts(): Promise<ObjWithProducts> {
+    return await this.objectForWorkwithServer.get<ObjWithProducts>("/product/");
   }
 
-  async sendDataOnServer(url: string, data: IOrderData): Promise<IOrderResponse> {
-    this.receiveAnswerObject = await this.objectForWorkwithServer.post<IOrderResponse>(url, data);
-    return this.receiveAnswerObject;
+  async sendDataOnServer(data: IOrderData): Promise<IOrderResponse> {
+    return await this.objectForWorkwithServer.post<IOrderResponse>("/order/",data);
   }
 }

@@ -1,11 +1,12 @@
 import { ValidationErrors } from '../../types';
 import { TPayment } from '../../types';
+import { IBuyer } from '../../types';
 
 export class Customer {
-  payment!: TPayment;
-  address!: string;
-  email!: string;
-  phone!: string;
+ protected payment: TPayment = "";
+ protected address: string = "";
+ protected email: string = "";
+ protected phone: string = "";
 
   setPayment(payment: TPayment): void {
     this.payment = payment;
@@ -23,7 +24,7 @@ export class Customer {
     this.phone = phone;
   }
 
-  getAllData() {
+  getAllData(): IBuyer {
     return {
       payment: this.payment,
       address: this.address,
@@ -61,31 +62,4 @@ export class Customer {
     return errors;
   }
 
-  isPaymentValid(): ValidationErrors {
-    if (!this.payment) {
-      return { payment: 'Не выбран вид оплаты' };
-    }
-    return {};
-  }
-
-  isEmailValid(): ValidationErrors {
-    if (!this.email || this.email.trim() === '') {
-      return { email: 'Укажите email' };
-    }
-    return {};
-  }
-
-  isPhoneValid(): ValidationErrors {
-    if (!this.phone || this.phone.trim() === '') {
-      return { phone: 'Укажите номер телефона' };
-    }
-    return {};
-  }
-
-  isAddressValid(): ValidationErrors {
-    if (!this.address || this.address.trim() === '') {
-      return { address: 'Укажите адрес' };
-    }
-    return {};
-  }
 }
