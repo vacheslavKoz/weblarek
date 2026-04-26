@@ -1,5 +1,7 @@
 # Проектная работа "Веб-ларек"
 
+GitHub: https://github.com/vacheslavKoz/weblarek
+
 Стек: HTML, SCSS, TS, Vite
 
 Структура проекта:
@@ -233,7 +235,7 @@ console.log("метод проверяющий заполнено ли поле 
 
 Поля класса:
 
-allProducts: objWithProducts — хранит объект с товарами, полученными с сервера (поля total и items)
+allProducts: ObjWithProducts — хранит объект с товарами, полученными с сервера (поля total и items)
 
 objectForWorkwithServer: IApi — объект для выполнения запросов (принимается в конструкторе)
 
@@ -246,11 +248,11 @@ getAllProducts(settingUrl: string): Promise<objWithProducts> — выполня�
 sendDataOnServer(url: string, data: IOrderData): Promise<IOrderResponse> — выполняет POST запрос на указанный эндпоинт, отправляет на сервер данные о заказе (способ оплаты, email, телефон, адрес, общую сумму и массив id товаров), сохраняет ответ сервера в поле receiveAnswerObject и возвращает его
 
 Пример использования:
-let ObjectServerApi = new ServerApi(new Api(`https://larek-api.nomoreparties.co/api/weblarek`))
+const objectServerApi = new ServerApi(new Api(API_URL));
 
 async function getProductsFromServer(): Promise<void> {
 
-console.log("получение всез товаров с сервера", await ObjectServerApi.getAllProducts("/product/"))
+console.log("получение всез товаров с сервера", await objectServerApi.getAllProducts("/product/"))
 
 }
 
@@ -270,7 +272,7 @@ let ObjectCustomertoSend : IOrderData = {
 
 async function sendProductsOnServer(): Promise<void> {
 
-console.log("отправка на сервер оформленного заказа",await ObjectServerApi.sendDataOnServer("/order",ObjectCustomertoSend))
+console.log("отправка на сервер оформленного заказа",await objectServerApi.sendDataOnServer("/order",ObjectCustomertoSend))
 
 }
 getProductsFromServer()
