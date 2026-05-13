@@ -61,5 +61,19 @@ export class Customer {
 
     return errors;
   }
+getPayment(): TPayment {
+    return this.payment;
+}
 
+getEmail(): string {
+    return this.email;
+}
+
+getPhone(): string {
+    return this.phone;
+}
+
+getAddress(): string {
+    return this.address;
+}
 }

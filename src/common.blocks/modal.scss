@@ -1,9 +1,8 @@
-@use "variables" as *;
-@use "mixins";
+@use 'variables' as *;
+@use 'mixins';
 
 .modal {
   @include mixins.sublayer;
-  // height: max-content;
   display: none;
   justify-content: center;
   background-color: $overlayBackground;
@@ -16,12 +15,29 @@
     display: flex;
   }
 
+  &_preview {
+    .modal__container {
+      max-width: 1320px;
+      width: calc(100% - 600px);
+      margin-left: 300px;
+      margin-right: 300px;
+    }
+  }
+
+  &_form {
+    .modal__container {
+      max-width: 1320px;
+      width: calc(100% - 600px);
+      margin-left: 300px;
+      margin-right: 300px;
+    }
+  }
+
   &__container {
     @include mixins.container;
     @include mixins.flex(column);
     gap: $defaultPadding;
     background-color: $background;
-    // min-height: 90vmin;
     border-radius: 3rem;
     box-sizing: border-box;
     position: relative;
@@ -58,7 +74,7 @@
   }
 
   &__message {
-    white-space:nowrap;
+    white-space: nowrap;
     max-width: 60%;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -66,5 +82,28 @@
     &_error {
       color: $error;
     }
+  }
+}
+
+@media (max-width: 1400px) {
+  .modal_preview .modal__container,
+  .modal_form .modal__container {
+    width: calc(100% - 80px);
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .modal_preview .modal__container,
+  .modal_form .modal__container {
+    width: calc(100% - 32px);
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .modal {
+    padding-top: 2vh;
+    padding-bottom: 2vh;
   }
 }
