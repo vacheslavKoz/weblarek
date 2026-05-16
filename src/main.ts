@@ -17,6 +17,7 @@ import { Success } from './components/Viev/Success';
 import { CardCatalog } from './components/Viev/CardCatalog';
 import { CardPreview } from './components/Viev/CardPreviev';
 import { CardBasket } from './components/Viev/CardBasket';
+import { Header } from './components/Viev/Header';
 
 // ============================================
 // 1. ИНИЦИАЛИЗАЦИЯ
@@ -31,10 +32,21 @@ const serverApi = new ServerApi(api);
 
 const pageContainer = document.querySelector('.page') as HTMLElement;
 const catalogView = new Catalog(pageContainer);
+const headerView = new Header(pageContainer, () => {
+    events.emit('basket:open');
+});
 const modalView = new Modal(pageContainer);
-let basketView: Basket | null = null;
+
+// Представления, создаваемые один раз
+const basketTemplate = getTemplate('basket');
+const basketClone = basketTemplate.content.cloneNode(true) as HTMLElement;
+const basketView = new Basket(basketClone, () => {
+    openOrderForm();
+});
+
 let orderFormView: OrderForm | null = null;
 let contactsFormView: ContactsForm | null = null;
+let successView: Success | null = null;
 
 // ============================================
 // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -84,27 +96,32 @@ function createBasketCard(product: IProduct, index: number): HTMLElement {
     return element;
 }
 
-function renderBasket(): void {
-    const template = getTemplate('basket');
-    const clone = template.content.cloneNode(true) as HTMLElement;
+function updateBasketData(): void {
     const cartItems = cartModel.getAllProducts();
     const cards = cartItems.map((product, i) => createBasketCard(product, i));
-
-    // Всегда создаём новый basketView, чтобы избежать проблем с переиспользованием DOM
-    basketView = new Basket(clone, () => {
-        openOrderForm();
-    });
-
+    
     basketView.items = cards;
     basketView.total = cartModel.getAllPrice();
     basketView.disabled = cards.length === 0;
-
-    modalView.content = basketView.render();
-    modalView.open('form');
 }
 
+//function updateBasketCounter(): void {
+    //catalogView.counter = cartModel.getAllCount();
+//}
 function updateBasketCounter(): void {
-    catalogView.counter = cartModel.getAllCount();
+    headerView.counter = cartModel.getAllCount();
+}
+
+function openBasket(): void {
+    console.log('openBasket вызван');
+    console.log('basketView.element:', basketView.element);
+    console.log('modalView.content до вставки:', modalView.content);
+    
+    updateBasketData();
+    modalView.content = basketView.render();
+    console.log('modalView.content после вставки:', modalView.content);
+    
+    modalView.open('form');
 }
 
 function openOrderForm(): void {
@@ -153,6 +170,7 @@ function openContactsForm(): void {
                 cartModel.deleteAll();
                 customerModel.deleteAllData();
                 updateBasketCounter();
+                updateBasketData();
             } catch (error) {
                 console.error('Ошибка отправки заказа:', error);
                 if (contactsFormView) {
@@ -167,12 +185,13 @@ function openContactsForm(): void {
 }
 
 function showSuccess(total: number): void {
-    const template = getTemplate('success');
-    const clone = template.content.cloneNode(true) as HTMLElement;
-
-    const successView = new Success(clone, () => {
-        modalView.close();
-    });
+    if (!successView) {
+        const successTemplate = getTemplate('success');
+        const successClone = successTemplate.content.cloneNode(true) as HTMLElement;
+        successView = new Success(successClone, () => {
+            modalView.close();
+        });
+    }
 
     successView.total = total;
     modalView.content = successView.render();
@@ -204,7 +223,9 @@ events.on('card:select', (data: { id: string }) => {
         productsModel.saveProduct(product);
     }
 });
-
+events.on('basket:open', () => {
+    openBasket();
+});
 productsModel.on('product:changed', (product: IProduct) => {
     const template = getTemplate('card-preview');
     const clone = template.content.cloneNode(true) as HTMLElement;
@@ -219,6 +240,7 @@ productsModel.on('product:changed', (product: IProduct) => {
             cartModel.setNewProduct(product);
         }
         updateBasketCounter();
+        updateBasketData();
         previewCard.buttonText = cartModel.checkProduct(product.id) ? 'Удалить из корзины' : 'В корзину';
     });
 
@@ -240,37 +262,33 @@ events.on('basket:remove', (data: { id: string }) => {
     const product = cartModel.getAllProducts().find(p => p.id === data.id);
     if (product) {
         cartModel.deleteProduct(product);
+        updateBasketData();
     }
 });
 
+//cartModel.on('cart:changed', () => {
+  //  updateBasketCounter();
+  //  updateBasketData();
+    
+  //  if (modalView.isOpen && modalView.content === basketView.element) {
+    //    modalView.content = basketView.render();
+  //  }
+//});
 cartModel.on('cart:changed', () => {
     updateBasketCounter();
+    updateBasketData(); // обновляет данные в basketView
     
-    // Если корзина сейчас открыта — обновляем её содержимое
-    if (modalView.isOpen && basketView) {
-        const cartItems = cartModel.getAllProducts();
-        const cards = cartItems.map((product, i) => createBasketCard(product, i));
-        
-        basketView.items = cards;
-        basketView.total = cartModel.getAllPrice();
-        basketView.disabled = cards.length === 0;
-        
-        // Обновляем содержимое модального окна, не пересоздавая basketView
-        const currentContent = modalView.content;
-        if (currentContent === basketView.element) {
-            modalView.content = basketView.render();
-        }
-    }
+    // Если корзина открыта, содержимое уже обновлено через сеттеры
+    // Не нужно вызывать modalView.content = basketView.render()
 });
-
 // ============================================
 // 4. ЗАПУСК
 // ============================================
-const basketButton = document.querySelector('.header__basket');
-if (basketButton) {
-    basketButton.addEventListener('click', () => {
-        renderBasket();
-    });
-}
+//const basketButton = document.querySelector('.header__basket');
+//if (basketButton) {
+   // basketButton.addEventListener('click', () => {
+     //   openBasket();
+   // });
+//}
 
 loadProducts();

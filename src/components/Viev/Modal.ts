@@ -39,13 +39,29 @@ export class Modal extends Component<object> {
         }
     }
 
-    close(): void {
-        if (this._modal) {
-            this._modal.classList.remove('modal_active');
-            this._modal.classList.remove('modal_preview', 'modal_form');
-        }
+   // close(): void {
+      //  if (this._modal) {
+         //   this._modal.classList.remove('modal_active');
+        //    this._modal.classList.remove('modal_preview', 'modal_form');
+       // }
+   // }
+  // close(): void {
+   // if (this._modal) {
+      //  this._modal.classList.remove('modal_active');
+      //  this._modal.classList.remove('modal_preview', 'modal_form');
+      //  // НЕ ОЧИЩАЕМ this._content.innerHTML
+    //}
+//}
+close(): void {
+    if (this._modal) {
+        console.log('Закрытие модалки');
+        console.log('Содержимое _content до очистки:', this._content?.innerHTML);
+        
+        this._modal.classList.remove('modal_active', 'modal_preview', 'modal_form');
+        
+        console.log('Содержимое _content после снятия классов:', this._content?.innerHTML);
     }
-
+}
     set content(content: HTMLElement) {
         if (this._content) {
             this._content.replaceChildren(content);

@@ -4,12 +4,21 @@ export class Basket extends Component<object> {
     private _basketList: HTMLElement | null;
     private _basketPrice: HTMLElement | null;
     private _basketButton: HTMLButtonElement | null;
+    private _element: HTMLElement; // сохраняем ссылку на реальный элемент
 
     constructor(container: HTMLElement, onCheckout?: () => void) {
         super(container);
-        this._basketList = this.container.querySelector('.basket__list');
-        this._basketPrice = this.container.querySelector('.basket__price');
-        this._basketButton = this.container.querySelector('.basket__button');
+        
+        // Определяем реальный DOM-элемент сразу в конструкторе
+        if (this.container instanceof DocumentFragment) {
+            this._element = this.container.children[0] as HTMLElement;
+        } else {
+            this._element = this.container as HTMLElement;
+        }
+        
+        this._basketList = this._element.querySelector('.basket__list');
+        this._basketPrice = this._element.querySelector('.basket__price');
+        this._basketButton = this._element.querySelector('.basket__button');
 
         if (this._basketButton && onCheckout) {
             this._basketButton.addEventListener('click', onCheckout);
@@ -40,10 +49,12 @@ export class Basket extends Component<object> {
             this._basketButton.disabled = value;
         }
     }
+
     get element(): HTMLElement {
-    return this.container;
-}
+        return this._element;
+    }
+
     render(): HTMLElement {
-        return this.container as HTMLElement;
+        return this._element;
     }
 }
