@@ -42,9 +42,7 @@ export class Modal extends Component<object> {
     close(): void {
         if (this._modal) {
             this._modal.classList.remove('modal_active');
-            if (this._content) {
-                this._content.innerHTML = '';
-            }
+            this._modal.classList.remove('modal_preview', 'modal_form');
         }
     }
 
@@ -52,5 +50,13 @@ export class Modal extends Component<object> {
         if (this._content) {
             this._content.replaceChildren(content);
         }
+    }
+
+    get content(): HTMLElement {
+        return this._content?.firstChild as HTMLElement;
+    }
+
+    get isOpen(): boolean {
+        return this._modal?.classList.contains('modal_active') || false;
     }
 }

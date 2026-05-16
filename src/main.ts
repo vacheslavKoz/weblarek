@@ -1,13 +1,13 @@
 import './scss/styles.scss';
+import { EventEmitter } from './components/base/Events';
 import { CDN_URL } from './utils/constants';
-import { IProduct } from './types/index';
+import { IProduct, IOrderData } from './types/index';
 import { ProductCatalog } from './components/Models/Catalog';
 import { Cart } from './components/Models/Cart';
 import { Customer } from './components/Models/Customer';
 import { ServerApi } from './components/Models/ServerApi';
 import { Api } from './components/base/Api';
 import { API_URL } from './utils/constants';
-import { IOrderData } from './types/index';
 import { Catalog } from './components/Viev/Catalog';
 import { Basket } from './components/Viev/Basket';
 import { Modal } from './components/Viev/Modal';
@@ -18,6 +18,11 @@ import { CardCatalog } from './components/Viev/CardCatalog';
 import { CardPreview } from './components/Viev/CardPreviev';
 import { CardBasket } from './components/Viev/CardBasket';
 
+// ============================================
+// 1. ИНИЦИАЛИЗАЦИЯ
+// ============================================
+const events = new EventEmitter();
+
 const productsModel = new ProductCatalog();
 const cartModel = new Cart();
 const customerModel = new Customer();
@@ -25,13 +30,15 @@ const api = new Api(API_URL);
 const serverApi = new ServerApi(api);
 
 const pageContainer = document.querySelector('.page') as HTMLElement;
-
 const catalogView = new Catalog(pageContainer);
 const modalView = new Modal(pageContainer);
 let basketView: Basket | null = null;
 let orderFormView: OrderForm | null = null;
 let contactsFormView: ContactsForm | null = null;
 
+// ============================================
+// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================
 function getTemplate(id: string): HTMLTemplateElement {
     const template = document.getElementById(id) as HTMLTemplateElement;
     if (!template) throw new Error(`Template ${id} not found`);
@@ -41,83 +48,49 @@ function getTemplate(id: string): HTMLTemplateElement {
 function createCatalogCard(product: IProduct): HTMLElement {
     const template = getTemplate('card-catalog');
     const clone = template.content.cloneNode(true) as HTMLElement;
+    const element = clone.children[0] as HTMLElement;
 
-    const card = new CardCatalog(clone);
-    const cardElement = card.render({
-        title: product.title,
-        price: product.price,
-        category: product.category,
-        image: CDN_URL + product.image.replace('.svg', '.png')
+    const card = new CardCatalog(element, (id) => {
+        events.emit('card:select', { id });
     });
 
-    cardElement.addEventListener('click', () => {
-        openProductPreview(product);
-    });
-
-    return cardElement;
-}
-
-function openProductPreview(product: IProduct): void {
-    const template = getTemplate('card-preview');
-    const clone = template.content.cloneNode(true) as HTMLElement;
-
-    const isInCart = cartModel.checkProduct(product.id);
-    const buttonText = isInCart ? 'Удалить из корзины' : 'В корзину';
-
-    const previewCard = new CardPreview(clone, () => {
-        if (cartModel.checkProduct(product.id)) {
-            cartModel.deleteProduct(product);
-        } else {
-            cartModel.setNewProduct(product);
-        }
-        updateBasketCounter();
-        previewCard.buttonText = cartModel.checkProduct(product.id) ? 'Удалить из корзины' : 'В корзину';
-    });
-
-    previewCard.render({
+    card.render({
         title: product.title,
         price: product.price,
         category: product.category,
         image: CDN_URL + product.image.replace('.svg', '.png'),
-        description: product.description
+        id: product.id
     });
-    previewCard.buttonText = buttonText;
-    previewCard.disabled = product.price === null;
 
-    modalView.content = previewCard.render();
-    modalView.open('preview');
-}
-
-function updateBasketCounter(): void {
-    catalogView.counter = cartModel.getAllCount();
+    return element;
 }
 
 function createBasketCard(product: IProduct, index: number): HTMLElement {
     const template = getTemplate('card-basket');
     const clone = template.content.cloneNode(true) as HTMLElement;
+    const element = clone.children[0] as HTMLElement;
 
-    const card = new CardBasket(clone, () => {
-        cartModel.deleteProduct(product);
-        renderBasket();
-        updateBasketCounter();
+    const card = new CardBasket(element, (id) => {
+        events.emit('basket:remove', { id });
     });
 
     card.render({
         title: product.title,
-        price: product.price
+        price: product.price,
+        id: product.id
     });
     card.index = index + 1;
 
-    return card.render();
+    return element;
 }
 
 function renderBasket(): void {
     const template = getTemplate('basket');
     const clone = template.content.cloneNode(true) as HTMLElement;
-
     const cartItems = cartModel.getAllProducts();
     const cards = cartItems.map((product, i) => createBasketCard(product, i));
 
+    // Всегда создаём новый basketView, чтобы избежать проблем с переиспользованием DOM
     basketView = new Basket(clone, () => {
         openOrderForm();
     });
@@ -128,6 +101,10 @@ function renderBasket(): void {
 
     modalView.content = basketView.render();
     modalView.open('form');
+}
+
+function updateBasketCounter(): void {
+    catalogView.counter = cartModel.getAllCount();
 }
 
 function openOrderForm(): void {
@@ -218,6 +195,77 @@ async function loadProducts(): Promise<void> {
     }
 }
 
+// ============================================
+// 3. ПОДПИСКИ НА СОБЫТИЯ
+// ============================================
+events.on('card:select', (data: { id: string }) => {
+    const product = productsModel.getProductById(data.id);
+    if (product) {
+        productsModel.saveProduct(product);
+    }
+});
+
+productsModel.on('product:changed', (product: IProduct) => {
+    const template = getTemplate('card-preview');
+    const clone = template.content.cloneNode(true) as HTMLElement;
+
+    const isInCart = cartModel.checkProduct(product.id);
+    const buttonText = isInCart ? 'Удалить из корзины' : 'В корзину';
+
+    const previewCard = new CardPreview(clone, () => {
+        if (cartModel.checkProduct(product.id)) {
+            cartModel.deleteProduct(product);
+        } else {
+            cartModel.setNewProduct(product);
+        }
+        updateBasketCounter();
+        previewCard.buttonText = cartModel.checkProduct(product.id) ? 'Удалить из корзины' : 'В корзину';
+    });
+
+    previewCard.render({
+        title: product.title,
+        price: product.price,
+        category: product.category,
+        image: CDN_URL + product.image.replace('.svg', '.png'),
+        description: product.description
+    });
+    previewCard.buttonText = buttonText;
+    previewCard.disabled = product.price === null;
+
+    modalView.content = previewCard.render();
+    modalView.open('preview');
+});
+
+events.on('basket:remove', (data: { id: string }) => {
+    const product = cartModel.getAllProducts().find(p => p.id === data.id);
+    if (product) {
+        cartModel.deleteProduct(product);
+    }
+});
+
+cartModel.on('cart:changed', () => {
+    updateBasketCounter();
+    
+    // Если корзина сейчас открыта — обновляем её содержимое
+    if (modalView.isOpen && basketView) {
+        const cartItems = cartModel.getAllProducts();
+        const cards = cartItems.map((product, i) => createBasketCard(product, i));
+        
+        basketView.items = cards;
+        basketView.total = cartModel.getAllPrice();
+        basketView.disabled = cards.length === 0;
+        
+        // Обновляем содержимое модального окна, не пересоздавая basketView
+        const currentContent = modalView.content;
+        if (currentContent === basketView.element) {
+            modalView.content = basketView.render();
+        }
+    }
+});
+
+// ============================================
+// 4. ЗАПУСК
+// ============================================
 const basketButton = document.querySelector('.header__basket');
 if (basketButton) {
     basketButton.addEventListener('click', () => {

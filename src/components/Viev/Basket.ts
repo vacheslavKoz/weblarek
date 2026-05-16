@@ -40,7 +40,9 @@ export class Basket extends Component<object> {
             this._basketButton.disabled = value;
         }
     }
-
+    get element(): HTMLElement {
+    return this.container;
+}
     render(): HTMLElement {
         return this.container as HTMLElement;
     }

@@ -1,6 +1,7 @@
 import { IProduct } from '../../types';
+import { EventEmitter } from '../base/Events';
 
-export class Cart {
+export class Cart extends EventEmitter{
   protected cartProducts: IProduct[] = [];
 
    saveAllProducts(products: IProduct[]): void{
@@ -13,14 +14,17 @@ export class Cart {
 
   setNewProduct(product: IProduct): void {
     this.cartProducts.push(product);
+    this.emit('cart:changed', this.cartProducts);
   }
 
   deleteProduct(product: IProduct): void {
     this.cartProducts = this.cartProducts.filter((item) => item.id !== product.id);
+    this.emit('cart:changed', this.cartProducts);
   }
 
   deleteAll(): void {
     this.cartProducts = [];
+    this.emit('cart:changed', this.cartProducts);
   }
 
   getAllPrice(): number {
