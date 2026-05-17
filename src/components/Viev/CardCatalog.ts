@@ -5,18 +5,16 @@ import { categoryMap } from '../../utils/constants';
 export class CardCatalog extends Card {
     protected _category: HTMLElement | null;
     protected _image: HTMLImageElement | null;
-    private onClick?: (id: string) => void;
 
     constructor(container: HTMLElement, onClick?: (id: string) => void) {
         super(container);
         this._category = container.querySelector('.card__category');
         this._image = container.querySelector('.card__image');
-        this.onClick = onClick;
 
-        if (this.onClick) {
+        if (onClick) {
             container.addEventListener('click', () => {
-                const productId = this.container.dataset.productId;
-                if (productId) this.onClick?.(productId);
+                const id = this.container.dataset.productId;
+                if (id) onClick(id);
             });
         }
     }

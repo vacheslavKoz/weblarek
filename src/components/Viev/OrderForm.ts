@@ -6,9 +6,12 @@ export class OrderForm extends Component<object> {
     private _addressInput: HTMLInputElement | null;
     private _submitButton: HTMLButtonElement | null;
     private _errorsContainer: HTMLElement | null;
-    private _selectedPayment: string = '';
 
-    constructor(container: HTMLElement) {
+    constructor(
+        container: HTMLElement,
+        onChange?: (field: string, value: string) => void,
+        onSubmit?: () => void
+    ) {
         super(container);
 
         this._cardButton = this.container.querySelector('button[name="card"]');
@@ -17,66 +20,68 @@ export class OrderForm extends Component<object> {
         this._submitButton = this.container.querySelector('.order__button');
         this._errorsContainer = this.container.querySelector('.form__errors');
 
+       
         if (this._cardButton) {
-            this._cardButton.addEventListener('click', () => this.selectPayment('card'));
+            this._cardButton.addEventListener('click', () => {
+                onChange?.('payment', 'card');
+            });
         }
         if (this._cashButton) {
-            this._cashButton.addEventListener('click', () => this.selectPayment('cash'));
+            this._cashButton.addEventListener('click', () => {
+                onChange?.('payment', 'cash');
+            });
         }
+
+       
         if (this._addressInput) {
-            this._addressInput.addEventListener('input', () => this.validateForm());
+            this._addressInput.addEventListener('input', () => {
+                onChange?.('address', this._addressInput?.value || '');
+            });
         }
 
-        this.container.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (this.isValid()) {
-               
-            }
-        });
+        
+       if (this._submitButton) {
+    this._submitButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Клик по кнопке Далее'); // ← ДОЛЖНО ПОЯВИТЬСЯ
+        onSubmit?.();
+    });
+}
     }
 
-    private selectPayment(payment: string): void {
-        this._selectedPayment = payment;
-        this.updatePaymentButtons();
-        this.validateForm();
-    }
-
-    private updatePaymentButtons(): void {
-        if (this._selectedPayment === 'card') {
-            if (this._cardButton) {
-                this._cardButton.classList.add('button_alt-active');
-            }
-            if (this._cashButton) {
-                this._cashButton.classList.remove('button_alt-active');
-            }
-        } else if (this._selectedPayment === 'cash') {
-            if (this._cashButton) {
-                this._cashButton.classList.add('button_alt-active');
-            }
-            if (this._cardButton) {
-                this._cardButton.classList.remove('button_alt-active');
-            }
+    
+    set payment(value: 'card' | 'cash' | null) {
+        if (value === 'card') {
+            this._cardButton?.classList.add('button_alt-active');
+            this._cashButton?.classList.remove('button_alt-active');
+        } else if (value === 'cash') {
+            this._cashButton?.classList.add('button_alt-active');
+            this._cardButton?.classList.remove('button_alt-active');
+        } else {
+            this._cardButton?.classList.remove('button_alt-active');
+            this._cashButton?.classList.remove('button_alt-active');
         }
     }
 
-    private isValid(): boolean {
-        return this._selectedPayment !== '' &&
-            (this._addressInput?.value.trim() !== '');
-    }
-
-    private validateForm(): void {
-        const isValid = this.isValid();
-        if (this._submitButton) {
-            this._submitButton.disabled = !isValid;
-        }
-        if (isValid && this._errorsContainer) {
-            this._errorsContainer.textContent = '';
+    
+    set address(value: string) {
+        if (this._addressInput && this._addressInput.value !== value) {
+            this._addressInput.value = value;
         }
     }
 
+   
     set errors(value: string) {
         if (this._errorsContainer) {
             this._errorsContainer.textContent = value;
+        }
+    }
+
+    
+    set valid(value: boolean) {
+          console.log('OrderForm valid:', value);
+        if (this._submitButton) {
+            this._submitButton.disabled = !value;
         }
     }
 
@@ -85,19 +90,5 @@ export class OrderForm extends Component<object> {
             return this.container.children[0] as HTMLFormElement;
         }
         return this.container as HTMLFormElement;
-    }
-
-    get address(): string {
-        return this._addressInput?.value || '';
-    }
-
-    get payment(): string {
-        return this._selectedPayment;
-    }
-
-    set valid(value: boolean) {
-        if (this._submitButton) {
-            this._submitButton.disabled = !value;
-        }
     }
 }

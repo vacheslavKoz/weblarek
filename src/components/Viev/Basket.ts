@@ -4,12 +4,12 @@ export class Basket extends Component<object> {
     private _basketList: HTMLElement | null;
     private _basketPrice: HTMLElement | null;
     private _basketButton: HTMLButtonElement | null;
-    private _element: HTMLElement; // сохраняем ссылку на реальный элемент
+    private _element: HTMLElement; 
 
     constructor(container: HTMLElement, onCheckout?: () => void) {
         super(container);
         
-        // Определяем реальный DOM-элемент сразу в конструкторе
+       
         if (this.container instanceof DocumentFragment) {
             this._element = this.container.children[0] as HTMLElement;
         } else {
