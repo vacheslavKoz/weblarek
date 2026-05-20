@@ -37,14 +37,10 @@ export class Modal extends Component<object> {
     }
 
     set content(content: HTMLElement) {
-    console.log('Modal.set content вызван, content:', content);
-    if (this._content) {
-        this._content.replaceChildren(content);
-        console.log('После replaceChildren, _content.innerHTML:', this._content.innerHTML);
-    } else {
-        console.error('Modal._content не найден!');
+        if (this._content) {
+            this._content.replaceChildren(content);
+        }
     }
-}
 
     get content(): HTMLElement {
         return this._content?.firstChild as HTMLElement;

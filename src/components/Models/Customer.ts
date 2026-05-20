@@ -4,10 +4,10 @@ import { IBuyer } from '../../types';
 import { EventEmitter } from '../base/Events';
 
 export class Customer {
-    protected payment: TPayment = "";
-    protected address: string = "";
-    protected email: string = "";
-    protected phone: string = "";
+    protected payment: TPayment = '';
+    protected address: string = '';
+    protected email: string = '';
+    protected phone: string = '';
     protected events: EventEmitter;
 
     constructor(events: EventEmitter) {

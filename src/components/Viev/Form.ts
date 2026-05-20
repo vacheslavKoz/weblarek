@@ -3,11 +3,17 @@ import { Component } from '../base/Component';
 export abstract class Form<T> extends Component<T> {
     protected _submitButton: HTMLButtonElement | null;
     protected _errorsContainer: HTMLElement | null;
+    protected onSubmitCallback?: () => void;
 
     constructor(container: HTMLElement) {
         super(container);
         this._submitButton = this.container.querySelector('.button[type="submit"]');
         this._errorsContainer = this.container.querySelector('.form__errors');
+
+        this.element.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.onSubmitCallback?.();
+        });
     }
 
     set errors(value: string) {
@@ -22,13 +28,14 @@ export abstract class Form<T> extends Component<T> {
         }
     }
 
-   get element(): HTMLFormElement {
-    if (this.container instanceof DocumentFragment) {
-        const element = this.container.children[0] as HTMLFormElement;
-        console.log('Form.element из фрагмента:', element);
-        return element;
+    get element(): HTMLFormElement {
+        if (this.container instanceof DocumentFragment) {
+            return this.container.children[0] as HTMLFormElement;
+        }
+        return this.container as HTMLFormElement;
     }
-    console.log('Form.element из контейнера:', this.container);
-    return this.container as HTMLFormElement;
-}
+
+    set onSubmit(callback: () => void) {
+        this.onSubmitCallback = callback;
+    }
 }
