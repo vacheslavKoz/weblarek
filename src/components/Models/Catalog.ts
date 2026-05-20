@@ -1,13 +1,18 @@
 import { IProduct } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-export class ProductCatalog extends EventEmitter {
+export class ProductCatalog {
     protected products: IProduct[] = [];
     protected choosenProduct: IProduct | null = null;
+    protected events: EventEmitter;
+
+    constructor(events: EventEmitter) {
+        this.events = events;
+    }
 
     setAllProducts(products: IProduct[]): void {
         this.products = products;
-        this.emit('products:changed', this.products);
+        this.events.emit('products:changed', this.products);
     }
 
     getProductById(id: string): IProduct | undefined {
@@ -24,6 +29,6 @@ export class ProductCatalog extends EventEmitter {
 
     saveProduct(product: IProduct): void {
         this.choosenProduct = product;
-        this.emit('product:changed', this.choosenProduct);
+        this.events.emit('product:changed', this.choosenProduct);
     }
 }

@@ -3,31 +3,35 @@ import { TPayment } from '../../types';
 import { IBuyer } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-export class Customer extends EventEmitter {
+export class Customer {
     protected payment: TPayment = "";
     protected address: string = "";
     protected email: string = "";
     protected phone: string = "";
+    protected events: EventEmitter;
+
+    constructor(events: EventEmitter) {
+        this.events = events;
+    }
 
     setPayment(payment: TPayment): void {
-        console.log('💰 setPayment called with:', payment);
         this.payment = payment;
-        this.emit('customer:changed', this.getAllData());
+        this.events.emit('customer:changed', this.getAllData());
     }
 
     setAddress(address: string): void {
         this.address = address;
-        this.emit('customer:changed', this.getAllData());
+        this.events.emit('customer:changed', this.getAllData());
     }
 
     setEmail(email: string): void {
         this.email = email;
-        this.emit('customer:changed', this.getAllData());
+        this.events.emit('customer:changed', this.getAllData());
     }
 
     setPhone(phone: string): void {
         this.phone = phone;
-        this.emit('customer:changed', this.getAllData());
+        this.events.emit('customer:changed', this.getAllData());
     }
 
     getAllData(): IBuyer {
@@ -44,7 +48,7 @@ export class Customer extends EventEmitter {
         this.address = '';
         this.email = '';
         this.phone = '';
-        this.emit('customer:changed', this.getAllData());
+        this.events.emit('customer:changed', this.getAllData());
     }
 
     validateOrder(): ValidationErrors {

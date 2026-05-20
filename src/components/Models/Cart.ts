@@ -1,41 +1,46 @@
 import { IProduct } from '../../types';
 import { EventEmitter } from '../base/Events';
 
-export class Cart extends EventEmitter{
-  protected cartProducts: IProduct[] = [];
+export class Cart {
+    protected cartProducts: IProduct[] = [];
+    protected events: EventEmitter;
 
-   saveAllProducts(products: IProduct[]): void{
-    this.cartProducts = products;
-  }
+    constructor(events: EventEmitter) {
+        this.events = events;
+    }
 
-  getAllProducts(): IProduct[] {
-    return this.cartProducts;
-  }
+    saveAllProducts(products: IProduct[]): void {
+        this.cartProducts = products;
+    }
 
-  setNewProduct(product: IProduct): void {
-    this.cartProducts.push(product);
-    this.emit('cart:changed', this.cartProducts);
-  }
+    getAllProducts(): IProduct[] {
+        return this.cartProducts;
+    }
 
-  deleteProduct(product: IProduct): void {
-    this.cartProducts = this.cartProducts.filter((item) => item.id !== product.id);
-    this.emit('cart:changed', this.cartProducts);
-  }
+    setNewProduct(product: IProduct): void {
+        this.cartProducts.push(product);
+        this.events.emit('cart:changed', this.cartProducts);
+    }
 
-  deleteAll(): void {
-    this.cartProducts = [];
-    this.emit('cart:changed', this.cartProducts);
-  }
+    deleteProduct(product: IProduct): void {
+        this.cartProducts = this.cartProducts.filter((item) => item.id !== product.id);
+        this.events.emit('cart:changed', this.cartProducts);
+    }
 
-  getAllPrice(): number {
-     return this.cartProducts.reduce((acc, item) => acc + (item.price ?? 0), 0);
-  }
+    deleteAll(): void {
+        this.cartProducts = [];
+        this.events.emit('cart:changed', this.cartProducts);
+    }
 
-  getAllCount(): number {
-    return this.cartProducts.length;
-  }
+    getAllPrice(): number {
+        return this.cartProducts.reduce((acc, item) => acc + (item.price ?? 0), 0);
+    }
 
-  checkProduct(id: string): boolean {
-    return this.cartProducts.some((item) => item.id === id);
-  }
+    getAllCount(): number {
+        return this.cartProducts.length;
+    }
+
+    checkProduct(id: string): boolean {
+        return this.cartProducts.some((item) => item.id === id);
+    }
 }

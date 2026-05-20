@@ -24,9 +24,9 @@ import { CardBasket } from './components/Viev/CardBasket';
 // ============================================
 const events = new EventEmitter();
 
-const productsModel = new ProductCatalog();
-const cartModel = new Cart();
-const customerModel = new Customer();
+const productsModel = new ProductCatalog(events);
+const cartModel = new Cart(events);
+const customerModel = new Customer(events);
 const api = new Api(API_URL);
 const serverApi = new ServerApi(api);
 
@@ -58,9 +58,11 @@ function getTemplate(id: string): HTMLTemplateElement {
 }
 
 function createCatalogCard(product: IProduct): HTMLElement {
-    const template = getTemplate('card-catalog');
-    const clone = template.content.cloneNode(true) as HTMLElement;
-    const element = clone.children[0] as HTMLElement;
+    const template = document.getElementById('card-catalog') as HTMLTemplateElement;
+    if (!template) throw new Error('Template card-catalog not found');
+    
+    // Берём первый дочерний элемент (реальный DOM, не фрагмент)
+    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
     const card = new CardCatalog(element, (id) => {
         events.emit('card:select', { id });
