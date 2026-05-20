@@ -24,37 +24,27 @@ export class Modal extends Component<object> {
         }
     }
 
-    open(type?: 'preview' | 'form'): void {
+    open(): void {
         if (this._modal) {
-            this._modal.classList.remove('modal_preview', 'modal_form');
-
-            if (type === 'preview') {
-                this._modal.classList.add('modal_preview');
-            }
-            if (type === 'form') {
-                this._modal.classList.add('modal_form');
-            }
-
             this._modal.classList.add('modal_active');
         }
     }
 
-
-close(): void {
-    if (this._modal) {
-        console.log('Закрытие модалки');
-        console.log('Содержимое _content до очистки:', this._content?.innerHTML);
-        
-        this._modal.classList.remove('modal_active', 'modal_preview', 'modal_form');
-        
-        console.log('Содержимое _content после снятия классов:', this._content?.innerHTML);
-    }
-}
-    set content(content: HTMLElement) {
-        if (this._content) {
-            this._content.replaceChildren(content);
+    close(): void {
+        if (this._modal) {
+            this._modal.classList.remove('modal_active', 'modal_preview', 'modal_form');
         }
     }
+
+    set content(content: HTMLElement) {
+    console.log('Modal.set content вызван, content:', content);
+    if (this._content) {
+        this._content.replaceChildren(content);
+        console.log('После replaceChildren, _content.innerHTML:', this._content.innerHTML);
+    } else {
+        console.error('Modal._content не найден!');
+    }
+}
 
     get content(): HTMLElement {
         return this._content?.firstChild as HTMLElement;
@@ -62,5 +52,25 @@ close(): void {
 
     get isOpen(): boolean {
         return this._modal?.classList.contains('modal_active') || false;
+    }
+
+    set previewMode(enabled: boolean) {
+        if (this._modal) {
+            if (enabled) {
+                this._modal.classList.add('modal_preview');
+            } else {
+                this._modal.classList.remove('modal_preview');
+            }
+        }
+    }
+
+    set formMode(enabled: boolean) {
+        if (this._modal) {
+            if (enabled) {
+                this._modal.classList.add('modal_form');
+            } else {
+                this._modal.classList.remove('modal_form');
+            }
+        }
     }
 }

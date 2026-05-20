@@ -8,7 +8,6 @@ export class Success extends Component<object> {
     constructor(container: HTMLElement, onClose: () => void) {
         super(container);
 
-       
         if (this.container instanceof DocumentFragment) {
             this._element = this.container.children[0] as HTMLElement;
         } else {

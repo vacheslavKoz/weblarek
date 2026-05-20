@@ -4,18 +4,17 @@ export class Basket extends Component<object> {
     private _basketList: HTMLElement | null;
     private _basketPrice: HTMLElement | null;
     private _basketButton: HTMLButtonElement | null;
-    private _element: HTMLElement; 
+    private _element: HTMLElement;
 
     constructor(container: HTMLElement, onCheckout?: () => void) {
         super(container);
-        
-       
+
         if (this.container instanceof DocumentFragment) {
             this._element = this.container.children[0] as HTMLElement;
         } else {
             this._element = this.container as HTMLElement;
         }
-        
+
         this._basketList = this._element.querySelector('.basket__list');
         this._basketPrice = this._element.querySelector('.basket__price');
         this._basketButton = this._element.querySelector('.basket__button');

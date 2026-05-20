@@ -10,6 +10,7 @@ export class Customer extends EventEmitter {
     protected phone: string = "";
 
     setPayment(payment: TPayment): void {
+        console.log('💰 setPayment called with:', payment);
         this.payment = payment;
         this.emit('customer:changed', this.getAllData());
     }
@@ -46,42 +47,19 @@ export class Customer extends EventEmitter {
         this.emit('customer:changed', this.getAllData());
     }
 
-    validate(): ValidationErrors {
+    validateOrder(): ValidationErrors {
         const errors: ValidationErrors = {};
-
-        if (!this.payment) {
-            errors.payment = 'Не выбран вид оплаты';
-        }
-
-        if (!this.email || this.email.trim() === '') {
-            errors.email = 'Укажите email';
-        }
-
-        if (!this.phone || this.phone.trim() === '') {
-            errors.phone = 'Укажите номер телефона';
-        }
-
-        if (!this.address || this.address.trim() === '') {
-            errors.address = 'Укажите адрес доставки';
-        }
-
+        if (!this.payment) errors.payment = 'Не выбран вид оплаты';
+        if (!this.address || this.address.trim() === '') errors.address = 'Укажите адрес доставки';
         return errors;
     }
 
-   
-validateOrder(): ValidationErrors {
-    const errors: ValidationErrors = {};
-    if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-    if (!this.address || this.address.trim() === '') errors.address = 'Укажите адрес доставки';
-    return errors;
-}
-
-validateContacts(): ValidationErrors {
-    const errors: ValidationErrors = {};
-    if (!this.email || this.email.trim() === '') errors.email = 'Укажите email';
-    if (!this.phone || this.phone.trim() === '') errors.phone = 'Укажите номер телефона';
-    return errors;
-}
+    validateContacts(): ValidationErrors {
+        const errors: ValidationErrors = {};
+        if (!this.email || this.email.trim() === '') errors.email = 'Укажите email';
+        if (!this.phone || this.phone.trim() === '') errors.phone = 'Укажите номер телефона';
+        return errors;
+    }
 
     getPayment(): TPayment {
         return this.payment;

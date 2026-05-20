@@ -1,10 +1,8 @@
-import { Component } from '../base/Component';
+import { Form } from './Form';
 
-export class ContactsForm extends Component<object> {
+export class ContactsForm extends Form<object> {
     private _emailInput: HTMLInputElement | null;
     private _phoneInput: HTMLInputElement | null;
-    private _submitButton: HTMLButtonElement | null;
-    private _errorsContainer: HTMLElement | null;
 
     constructor(
         container: HTMLElement,
@@ -15,8 +13,6 @@ export class ContactsForm extends Component<object> {
 
         this._emailInput = this.container.querySelector('input[name="email"]');
         this._phoneInput = this.container.querySelector('input[name="phone"]');
-        this._submitButton = this.container.querySelector('.button[type="submit"]');
-        this._errorsContainer = this.container.querySelector('.form__errors');
 
         if (this._emailInput) {
             this._emailInput.addEventListener('input', () => {
@@ -30,11 +26,9 @@ export class ContactsForm extends Component<object> {
             });
         }
 
-       
         if (this._submitButton) {
             this._submitButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('Клик по кнопке Оплатить'); // ← для отладки
                 onSubmit?.();
             });
         }
@@ -50,24 +44,5 @@ export class ContactsForm extends Component<object> {
         if (this._phoneInput && this._phoneInput.value !== value) {
             this._phoneInput.value = value;
         }
-    }
-
-    set errors(value: string) {
-        if (this._errorsContainer) {
-            this._errorsContainer.textContent = value;
-        }
-    }
-
-    set valid(value: boolean) {
-        if (this._submitButton) {
-            this._submitButton.disabled = !value;
-        }
-    }
-
-    get element(): HTMLFormElement {
-        if (this.container instanceof DocumentFragment) {
-            return this.container.children[0] as HTMLFormElement;
-        }
-        return this.container as HTMLFormElement;
     }
 }
