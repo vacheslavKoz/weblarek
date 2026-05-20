@@ -1,170 +1,506 @@
 # Проектная работа "Веб-ларек"
 
-GitHub: https://github.com/vacheslavKoz/weblarek
+**GitHub:** https://github.com/vacheslavKoz/weblarek
 
-Стек: HTML, SCSS, TS, Vite
+**Стек:** HTML, SCSS, TS, Vite
 
-Структура проекта:
-- src/ — исходные файлы проекта
-- src/components/ — папка с JS компонентами
-- src/components/base/ — папка с базовым кодом
+---
 
-Важные файлы:
-- index.html — HTML-файл главной страницы
-- src/types/index.ts — файл с типами
-- src/main.ts — точка входа приложения
-- src/scss/styles.scss — корневой файл стилей
-- src/utils/constants.ts — файл с константами
-- src/utils/utils.ts — файл с утилитами
+## Структура проекта
+src/
+├── components/
+│ ├── base/ # базовые классы (Component, Api, EventEmitter)
+│ ├── Models/ # модели данных
+│ └── Viev/ # классы представления (View)
+├── scss/ # стили
+├── types/ # типы данных
+├── utils/ # утилиты и константы
+├── main.ts # точка входа (презентер)
+└── index.html # главная страница
+
+text
+
+### Важные файлы
+
+| Файл | Назначение |
+|------|------------|
+| `src/types/index.ts` | Типы данных |
+| `src/main.ts` | Презентер, логика приложения |
+| `src/scss/styles.scss` | Корневые стили |
+| `src/utils/constants.ts` | Константы (API_URL, CDN_URL, categoryMap) |
+
+---
 
 ## Установка и запуск
-Для установки и запуска проекта необходимо выполнить команды
-
-```
 npm install
 npm run dev
-```
+
+text
 
 или
-
-```
 yarn
 yarn dev
-```
-## Сборка
 
-```
+text
+
+## Сборка
 npm run build
-```
+
+text
 
 или
-
-```
 yarn build
-```
+
+text
+
+---
+
 # Интернет-магазин «Web-Larёk»
-«Web-Larёk» — это интернет-магазин с товарами для веб-разработчиков, где пользователи могут просматривать товары, добавлять их в корзину и оформлять заказы. Сайт предоставляет удобный интерфейс с модальными окнами для просмотра деталей товаров, управления корзиной и выбора способа оплаты, обеспечивая полный цикл покупки с отправкой заказов на сервер.
 
-## Архитектура приложения
+«Web-Larёk» — интернет-магазин с товарами для веб-разработчиков. Пользователи могут просматривать товары, добавлять их в корзину и оформлять заказы.
 
-Код приложения разделен на слои согласно парадигме MVP (Model-View-Presenter), которая обеспечивает четкое разделение ответственности между классами слоев Model и View. Каждый слой несет свой смысл и ответственность:
+---
 
-Model - слой данных, отвечает за хранение и изменение данных.  
-View - слой представления, отвечает за отображение данных на странице.  
-Presenter - презентер содержит основную логику приложения и  отвечает за связь представления и данных.
+## Архитектура приложения (MVP)
 
-Взаимодействие между классами обеспечивается использованием событийно-ориентированного подхода. Модели и Представления генерируют события при изменении данных или взаимодействии пользователя с приложением, а Презентер обрабатывает эти события используя методы как Моделей, так и Представлений.
+| Слой | Ответственность |
+|------|----------------|
+| Model | Хранение и изменение данных |
+| View | Отображение данных на странице |
+| Presenter | Связь Model и View, бизнес-логика |
 
-### Базовый код
+**Взаимодействие между слоями построено на событиях (EventEmitter):**
+- Модели генерируют события при изменении данных
+- Представления генерируют события при действиях пользователя
+- Презентер подписывается на события и реагирует на них
 
-#### Класс Component
-Является базовым классом для всех компонентов интерфейса.
-Класс является дженериком и принимает в переменной `T` тип данных, которые могут быть переданы в метод `render` для отображения.
+---
 
-Конструктор:  
-`constructor(container: HTMLElement)` - принимает ссылку на DOM элемент за отображение, которого он отвечает.
+## Базовый код
 
-Поля класса:  
-`container: HTMLElement` - поле для хранения корневого DOM элемента компонента.
+### `Component<T>`
 
-Методы класса:  
-`render(data?: Partial<T>): HTMLElement` - Главный метод класса. Он принимает данные, которые необходимо отобразить в интерфейсе, записывает эти данные в поля класса и возвращает ссылку на DOM-элемент. Предполагается, что в классах, которые будут наследоваться от `Component` будут реализованы сеттеры для полей с данными, которые будут вызываться в момент вызова `render` и записывать данные в необходимые DOM элементы.  
-`setImage(element: HTMLImageElement, src: string, alt?: string): void` - утилитарный метод для модификации DOM-элементов `<img>`
+**Конструктор:** `constructor(container: HTMLElement)`
 
+| Метод | Описание |
+|-------|----------|
+| `render(data?: Partial<T>): HTMLElement` | Отрисовка компонента |
+| `setImage(element: HTMLImageElement, src: string, alt?: string): void` | Установка изображения |
 
-#### Класс Api
-Содержит в себе базовую логику отправки запросов.
+---
 
-Конструктор:  
-`constructor(baseUrl: string, options: RequestInit = {})` - В конструктор передается базовый адрес сервера и опциональный объект с заголовками запросов.
+### `Api`
 
-Поля класса:  
-`baseUrl: string` - базовый адрес сервера  
-`options: RequestInit` - объект с заголовками, которые будут использованы для запросов.
+**Конструктор:** `constructor(baseUrl: string, options: RequestInit = {})`
 
-Методы:  
-`get(uri: string): Promise<object>` - выполняет GET запрос на переданный в параметрах ендпоинт и возвращает промис с объектом, которым ответил сервер  
-`post(uri: string, data: object, method: ApiPostMethods = 'POST'): Promise<object>` - принимает объект с данными, которые будут переданы в JSON в теле запроса, и отправляет эти данные на ендпоинт переданный как параметр при вызове метода. По умолчанию выполняется `POST` запрос, но метод запроса может быть переопределен заданием третьего параметра при вызове.  
-`handleResponse(response: Response): Promise<object>` - защищенный метод проверяющий ответ сервера на корректность и возвращающий объект с данными полученный от сервера или отклоненный промис, в случае некорректных данных.
+| Метод | Описание |
+|-------|----------|
+| `get<T extends object>(uri: string): Promise<T>` | GET-запрос |
+| `post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>` | POST-запрос |
+| `protected handleResponse<T>(response: Response): Promise<T>` | Обработка ответа |
 
-#### Класс EventEmitter
-Брокер событий реализует паттерн "Наблюдатель", позволяющий отправлять события и подписываться на события, происходящие в системе. Класс используется для связи слоя данных и представления.
+---
 
-Конструктор класса не принимает параметров.
+### `EventEmitter`
 
-Поля класса:  
-`_events: Map<string | RegExp, Set<Function>>)` -  хранит коллекцию подписок на события. Ключи коллекции - названия событий или регулярное выражение, значения - коллекция функций обработчиков, которые будут вызваны при срабатывании события.
+| Метод | Описание |
+|-------|----------|
+| `on<T extends object>(event: EventName, callback: (data: T) => void): void` | Подписка на событие |
+| `emit<T extends object>(event: string, data?: T): void` | Вызов события |
+| `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` | Создание триггера |
 
-Методы класса:  
-`on<T extends object>(event: EventName, callback: (data: T) => void): void` - подписка на событие, принимает название события и функцию обработчик.  
-`emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
-`trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
+---
 
-## Модели данных
+## Модели данных (Model)
 
-### ProductCatalog
-Хранит список товаров и выбранный товар.
+### `ProductCatalog` — каталог товаров
 
 **Поля:**
-- `products: IProduct[]` — массив товаров
-- `choosenProduct: IProduct | null` — выбранный товар
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `products` | `IProduct[]` | Массив товаров |
+| `choosenProduct` | `IProduct \| null` | Выбранный товар |
 
 **Методы:**
-- `setAllProducts(products: IProduct[]): void` — сохранить массив товаров
-- `getAllProduct(): IProduct[]` — получить все товары
-- `getProductById(id: string): IProduct | undefined` — найти товар по id
-- `saveProduct(product: IProduct): void` — сохранить выбранный товар
-- `getChosenProduct(): IProduct | null` — получить выбранный товар
 
-### Cart
-Управляет корзиной товаров.
+| Метод | Описание |
+|-------|----------|
+| `setAllProducts(products: IProduct[]): void` | Сохранить массив товаров |
+| `getAllProduct(): IProduct[]` | Получить все товары |
+| `getProductById(id: string): IProduct \| undefined` | Найти товар по id |
+| `saveProduct(product: IProduct): void` | Сохранить выбранный товар |
+| `getChosenProduct(): IProduct \| null` | Получить выбранный товар |
+
+**События:** `products:changed`, `product:changed`
+
+---
+
+### `Cart` — корзина
 
 **Поля:**
-- `cartProducts: IProduct[]` — массив товаров в корзине
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `cartProducts` | `IProduct[]` | Массив товаров в корзине |
 
 **Методы:**
-- `saveAllProducts(products: IProduct[]): void` — сохранить все товары
-- `getAllProducts(): IProduct[]` — получить все товары из корзины
-- `setNewProduct(product: IProduct): void` — добавить товар
-- `deleteProduct(product: IProduct): void` — удалить товар
-- `deleteAll(): void` — очистить корзину
-- `getAllPrice(): number` — общая стоимость
-- `getAllCount(): number` — количество товаров
-- `checkProduct(id: string): boolean` — проверка наличия товара
 
-### Customer
-Хранит данные покупателя.
+| Метод | Описание |
+|-------|----------|
+| `saveAllProducts(products: IProduct[]): void` | Сохранить все товары |
+| `getAllProducts(): IProduct[]` | Получить все товары из корзины |
+| `setNewProduct(product: IProduct): void` | Добавить товар |
+| `deleteProduct(product: IProduct): void` | Удалить товар |
+| `deleteAll(): void` | Очистить корзину |
+| `getAllPrice(): number` | Общая стоимость |
+| `getAllCount(): number` | Количество товаров |
+| `checkProduct(id: string): boolean` | Проверка наличия товара |
+
+**События:** `cart:changed`
+
+---
+
+### `Customer` — данные покупателя
 
 **Поля:**
-- `payment: TPayment` — способ оплаты ('cash', 'card' или '')
-- `address: string` — адрес
-- `email: string` — email
-- `phone: string` — телефон
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `payment` | `TPayment` | Способ оплаты |
+| `address` | `string` | Адрес |
+| `email` | `string` | Email |
+| `phone` | `string` | Телефон |
 
 **Методы:**
-- `setPayment(payment: TPayment): void` — сохранить способ оплаты
-- `setAddress(address: string): void` — сохранить адрес
-- `setEmail(email: string): void` — сохранить email
-- `setPhone(phone: string): void` — сохранить телефон
-- `getAllData(): IBuyer` — получить все данные
-- `deleteAllData(): void` — очистить все данные
-- `validate(): ValidationErrors` — вернуть ошибки для пустых полей
 
-### ServerApi
-Взаимодействие с сервером.
+| Метод | Описание |
+|-------|----------|
+| `setPayment(payment: TPayment): void` | Сохранить способ оплаты |
+| `setAddress(address: string): void` | Сохранить адрес |
+| `setEmail(email: string): void` | Сохранить email |
+| `setPhone(phone: string): void` | Сохранить телефон |
+| `getAllData(): IBuyer` | Получить все данные |
+| `deleteAllData(): void` | Очистить данные |
+| `validateOrder(): ValidationErrors` | Валидация первого шага (payment, address) |
+| `validateContacts(): ValidationErrors` | Валидация второго шага (email, phone) |
+
+**События:** `customer:changed`
+
+---
+
+### `ServerApi` — работа с сервером
 
 **Поля:**
-- `objectForWorkwithServer: IApi` — экземпляр Api для запросов
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `objectForWorkwithServer` | `IApi` | Экземпляр Api для запросов |
 
 **Методы:**
-- `getAllProducts(): Promise<ObjWithProducts>` — получить товары с сервера (GET /product/)
-- `sendDataOnServer(data: IOrderData): Promise<IOrderResponse>` — отправить заказ (POST /order/)
+
+| Метод | Описание |
+|-------|----------|
+| `getAllProducts(): Promise<ObjWithProducts>` | GET `/product/` — получить товары |
+| `sendDataOnServer(data: IOrderData): Promise<IOrderResponse>` | POST `/order/` — отправить заказ |
+
+---
+
+## Слой представления (View)
+
+### `Card` — базовый класс карточки
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_title` | `HTMLElement \| null` | Элемент с названием товара |
+| `_price` | `HTMLElement \| null` | Элемент с ценой |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set title(value: string): void` | Устанавливает название |
+| `set price(value: number \| null): void` | Устанавливает цену («Недоступно» для null) |
+
+---
+
+### `CardCatalog` — карточка в каталоге
+
+**Наследует:** `Card`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_category` | `HTMLElement \| null` | Элемент с категорией |
+| `_image` | `HTMLImageElement \| null` | Элемент с изображением |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set category(value: string): void` | Устанавливает категорию и CSS-класс |
+| `set image(value: string): void` | Устанавливает изображение |
+
+**Событие:** `card:select` (клик по карточке)
+
+---
+
+### `CardPreview` — карточка в модальном окне
+
+**Наследует:** `Card`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_category` | `HTMLElement \| null` | Элемент с категорией |
+| `_image` | `HTMLImageElement \| null` | Элемент с изображением |
+| `_text` | `HTMLElement \| null` | Элемент с описанием |
+| `_button` | `HTMLButtonElement \| null` | Кнопка действия |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set category(value: string): void` | Устанавливает категорию и CSS-класс |
+| `set image(value: string): void` | Устанавливает изображение |
+| `set description(value: string): void` | Устанавливает описание |
+| `set buttonText(value: string): void` | Текст на кнопке |
+| `set disabled(value: boolean): void` | Блокировка кнопки |
+
+**Событие:** `card:toggle` (клик по кнопке)
+
+---
+
+### `CardBasket` — карточка в корзине
+
+**Наследует:** `Card`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_index` | `HTMLElement \| null` | Элемент с порядковым номером |
+| `_deleteButton` | `HTMLButtonElement \| null` | Кнопка удаления |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set index(value: number): void` | Устанавливает порядковый номер |
+
+**Событие:** `basket:remove` (клик по кнопке удаления)
+
+---
+
+### `Catalog` — галерея товаров
+
+**Наследует:** `Component<{ items: HTMLElement[] }>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_gallery` | `HTMLElement \| null` | Контейнер галереи |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set items(cards: HTMLElement[]): void` | Отображает карточки в галерее |
+
+---
+
+### `Basket` — корзина
+
+**Наследует:** `Component<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_basketList` | `HTMLElement \| null` | Список товаров |
+| `_basketPrice` | `HTMLElement \| null` | Общая сумма |
+| `_basketButton` | `HTMLButtonElement \| null` | Кнопка «Оформить» |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set items(cards: HTMLElement[]): void` | Отображает товары или «Корзина пуста» |
+| `set total(value: number): void` | Обновляет общую сумму |
+| `set disabled(value: boolean): void` | Блокирует кнопку «Оформить» |
+
+**Событие:** `basket:checkout` (клик по кнопке «Оформить»)
+
+---
+
+### `Header` — шапка сайта
+
+**Наследует:** `Component<{ counter: number }>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_counter` | `HTMLElement \| null` | Счётчик корзины |
+| `_basketButton` | `HTMLButtonElement \| null` | Кнопка корзины |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set counter(value: number): void` | Обновляет счётчик корзины |
+
+**Событие:** `basket:open` (клик по иконке корзины)
+
+---
+
+### `Modal` — модальное окно
+
+**Наследует:** `Component<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_modal` | `HTMLElement \| null` | Корневой элемент модалки |
+| `_content` | `HTMLElement \| null` | Контейнер контента |
+| `_closeButton` | `HTMLButtonElement \| null` | Кнопка закрытия |
+
+**Методы:**
+
+| Метод | Описание |
+|-------|----------|
+| `open(): void` | Открыть модальное окно |
+| `close(): void` | Закрыть модальное окно |
+| `set content(content: HTMLElement): void` | Вставить контент |
+| `get isOpen(): boolean` | Проверить, открыто ли окно |
+| `set previewMode(enabled: boolean): void` | Установить режим предпросмотра |
+| `set formMode(enabled: boolean): void` | Установить режим формы |
+
+---
+
+### `Form` — базовый класс для форм
+
+**Наследует:** `Component<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_submitButton` | `HTMLButtonElement \| null` | Кнопка отправки |
+| `_errorsContainer` | `HTMLElement \| null` | Контейнер для ошибок |
+| `onSubmitCallback` | `(() => void) \| undefined` | Колбэк отправки |
+
+**Методы:**
+
+| Метод | Описание |
+|-------|----------|
+| `set errors(value: string): void` | Показать ошибку |
+| `set valid(value: boolean): void` | Управление кнопкой отправки |
+| `set onSubmit(callback: () => void): void` | Установить колбэк отправки |
+| `get element(): HTMLFormElement` | Получить корневой элемент формы |
+
+---
+
+### `OrderForm` — форма первого шага
+
+**Наследует:** `Form<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_cardButton` | `HTMLButtonElement \| null` | Кнопка «Онлайн» |
+| `_cashButton` | `HTMLButtonElement \| null` | Кнопка «При получении» |
+| `_addressInput` | `HTMLInputElement \| null` | Поле ввода адреса |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set payment(value: 'card' \| 'cash' \| null): void` | Подсветка выбранного способа оплаты |
+| `set address(value: string): void` | Установка адреса |
+
+**События:** `order:change`, `order:submit`
+
+---
+
+### `ContactsForm` — форма второго шага
+
+**Наследует:** `Form<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_emailInput` | `HTMLInputElement \| null` | Поле ввода email |
+| `_phoneInput` | `HTMLInputElement \| null` | Поле ввода телефона |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set email(value: string): void` | Установка email |
+| `set phone(value: string): void` | Установка телефона |
+
+**События:** `contacts:change`, `contacts:submit`
+
+---
+
+### `Success` — сообщение об успехе
+
+**Наследует:** `Component<object>`
+
+**Поля:**
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `_closeButton` | `HTMLButtonElement \| null` | Кнопка закрытия |
+| `_description` | `HTMLElement \| null` | Элемент с описанием списания |
+
+**Методы (сеттеры):**
+
+| Сеттер | Описание |
+|--------|----------|
+| `set total(value: number): void` | Устанавливает сумму списания |
+
+---
+
+## Событийная модель
+
+### События от представлений
+
+| Событие | Источник | Данные |
+|---------|----------|--------|
+| `card:select` | `CardCatalog` | `{ id: string }` |
+| `card:toggle` | `CardPreview` | `{ id: string }` |
+| `basket:remove` | `CardBasket` | `{ id: string }` |
+| `basket:open` | `Header` | — |
+| `basket:checkout` | `Basket` | — |
+| `order:change` | `OrderForm` | `{ field: string, value: string }` |
+| `order:submit` | `OrderForm` | — |
+| `contacts:change` | `ContactsForm` | `{ field: string, value: string }` |
+| `contacts:submit` | `ContactsForm` | — |
+
+### События от моделей
+
+| Событие | Источник | Данные |
+|---------|----------|--------|
+| `products:changed` | `ProductCatalog` | `IProduct[]` |
+| `product:changed` | `ProductCatalog` | `IProduct` |
+| `cart:changed` | `Cart` | `IProduct[]` |
+| `customer:changed` | `Customer` | `IBuyer` |
 
 ---
 
 ## Типы данных
 
-### Интерфейс IProduct (объект товара)
+### `IProduct` — объект товара
 
 | Поле | Тип | Описание |
 |------|-----|----------|
@@ -175,25 +511,25 @@ Presenter - презентер содержит основную логику п
 | `category` | `string` | Категория |
 | `price` | `number \| null` | Цена (null — бесплатно) |
 
-### Интерфейс IBuyer (данные покупателя)
+### `IBuyer` — данные покупателя
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `payment` | `TPayment` | Способ оплаты ('cash', 'card' или '') |
+| `payment` | `TPayment` | Способ оплаты |
 | `email` | `string` | Электронная почта |
 | `phone` | `string` | Номер телефона |
 | `address` | `string` | Адрес доставки |
 
 ### Дополнительные типы
-- `TPayment` — 'cash' | 'card' | ''
-- `ValidationErrors` — ошибки валидации (поля опциональны)
-- `ObjWithProducts` — ответ сервера: `{ total: number, items: IProduct[] }`
-- `IOrderData extends IBuyer` — данные заказа (+ total, items)
-- `IOrderResponse` — ответ сервера: `{ id: string, total: number }`
-- `IApi` — интерфейс для Api
-- `ApiPostMethods` — 'POST' | 'PUT' | 'DELETE'
 
-
-
+| Тип | Описание |
+|-----|----------|
+| `TPayment` | `'cash' \| 'card' \| ''` |
+| `ValidationErrors` | Ошибки валидации (поля опциональны) |
+| `ObjWithProducts` | `{ total: number; items: IProduct[] }` |
+| `IOrderData` | `extends IBuyer { total: number; items: string[] }` |
+| `IOrderResponse` | `{ id: string; total: number }` |
+| `IApi` | `{ get<T>(uri: string): Promise<T>; post<T>(uri: string, data: object): Promise<T> }` |
+| `ApiPostMethods` | `'POST' \| 'PUT' \| 'DELETE'` |
 
 
