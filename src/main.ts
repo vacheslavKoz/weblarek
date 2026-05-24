@@ -64,6 +64,10 @@ const previewCard = new CardPreview(previewElement, () => {
   }
 });
 
+const successTemplate = getTemplate('success');
+const successElement = successTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+const successView = new Success(successElement, () => modalView.close());
+
 function getTemplate(id: string): HTMLTemplateElement {
   const template = document.getElementById(id) as HTMLTemplateElement;
   if (!template) throw new Error(`Template ${id} not found`);
@@ -229,11 +233,9 @@ events.on('contacts:submit', async () => {
   try {
     const result = await serverApi.sendDataOnServer(orderData);
 
-    const successTemplate = getTemplate('success');
-    const successElement = successTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    const successView = new Success(successElement, () => modalView.close());
     successView.total = result.total;
     modalView.content = successView.render();
+    modalView.open();
 
     cartModel.deleteAll();
     customerModel.deleteAllData();
