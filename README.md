@@ -18,7 +18,6 @@ src/
 ├── main.ts # точка входа (презентер)
 └── index.html # главная страница
 
-text
 
 ### Важные файлы
 
@@ -35,23 +34,19 @@ text
 npm install
 npm run dev
 
-text
 
 или
 yarn
 yarn dev
 
-text
 
 ## Сборка
 npm run build
 
-text
 
 или
 yarn build
 
-text
 
 ---
 
@@ -182,8 +177,7 @@ text
 | `setPhone(phone: string): void` | Сохранить телефон |
 | `getAllData(): IBuyer` | Получить все данные |
 | `deleteAllData(): void` | Очистить данные |
-| `validateOrder(): ValidationErrors` | Валидация первого шага (payment, address) |
-| `validateContacts(): ValidationErrors` | Валидация второго шага (email, phone) |
+| `validate(): ValidationErrors` | Валидация всех полей |
 
 **События:** `customer:changed`
 
@@ -379,8 +373,6 @@ text
 | `close(): void` | Закрыть модальное окно |
 | `set content(content: HTMLElement): void` | Вставить контент |
 | `get isOpen(): boolean` | Проверить, открыто ли окно |
-| `set previewMode(enabled: boolean): void` | Установить режим предпросмотра |
-| `set formMode(enabled: boolean): void` | Установить режим формы |
 
 ---
 
@@ -403,7 +395,7 @@ text
 | `set errors(value: string): void` | Показать ошибку |
 | `set valid(value: boolean): void` | Управление кнопкой отправки |
 | `set onSubmit(callback: () => void): void` | Установить колбэк отправки |
-| `get element(): HTMLFormElement` | Получить корневой элемент формы |
+| `render(): HTMLElement` | Получить корневой элемент формы |
 
 ---
 
