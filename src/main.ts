@@ -19,9 +19,6 @@ import { CardCatalog } from './components/Viev/CardCatalog';
 import { CardPreview } from './components/Viev/CardPreviev';
 import { CardBasket } from './components/Viev/CardBasket';
 
-// ============================================
-// 1. ИНИЦИАЛИЗАЦИЯ
-// ============================================
 const events = new EventEmitter();
 
 const productsModel = new ProductCatalog(events);
@@ -34,300 +31,241 @@ const pageContainer = document.querySelector('.page') as HTMLElement;
 const catalogView = new Catalog(pageContainer);
 const modalView = new Modal(pageContainer);
 const headerView = new Header(pageContainer, () => {
-    events.emit('basket:open');
+  events.emit('basket:open');
 });
 
 const basketTemplate = getTemplate('basket');
 const basketElement = basketTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
 const basketView = new Basket(basketElement, () => {
-    openOrderForm();
+  events.emit('order:open');
+});
+basketView.disabled = true;
+
+const orderTemplate = getTemplate('order');
+const orderElement = orderTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+const orderForm = new OrderForm(orderElement,
+  (field, value) => events.emit('order:change', { field, value }),
+  () => events.emit('order:submit')
+);
+
+const contactsTemplate = getTemplate('contacts');
+const contactsElement = contactsTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+const contactsForm = new ContactsForm(contactsElement,
+  (field, value) => events.emit('contacts:change', { field, value }),
+  () => events.emit('contacts:submit')
+);
+
+const previewTemplate = getTemplate('card-preview');
+const previewElement = previewTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+const previewCard = new CardPreview(previewElement, () => {
+  const product = productsModel.getChosenProduct();
+  if (product) {
+    events.emit('card:toggle', { id: product.id });
+  }
 });
 
-let currentOrderForm: OrderForm | null = null;
-let currentContactsForm: ContactsForm | null = null;
-
-// ============================================
-// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
 function getTemplate(id: string): HTMLTemplateElement {
-    const template = document.getElementById(id) as HTMLTemplateElement;
-    if (!template) throw new Error(`Template ${id} not found`);
-    return template;
+  const template = document.getElementById(id) as HTMLTemplateElement;
+  if (!template) throw new Error(`Template ${id} not found`);
+  return template;
 }
 
 function createCatalogCard(product: IProduct): HTMLElement {
-    const template = document.getElementById('card-catalog') as HTMLTemplateElement;
-    if (!template) throw new Error('Template card-catalog not found');
+  const template = document.getElementById('card-catalog') as HTMLTemplateElement;
+  if (!template) throw new Error('Template card-catalog not found');
 
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+  const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
-    const card = new CardCatalog(element, (id) => {
-        events.emit('card:select', { id });
-    });
+  const card = new CardCatalog(element, (id) => {
+    events.emit('card:select', { id });
+  });
 
-    card.render({
-        title: product.title,
-        price: product.price,
-        category: product.category,
-        image: CDN_URL + product.image.replace('.svg', '.png'),
-        id: product.id
-    });
+  card.render({
+    title: product.title,
+    price: product.price,
+    category: product.category,
+    image: CDN_URL + product.image.replace('.svg', '.png'),
+    id: product.id,
+  });
 
-    return element;
+  return element;
 }
 
 function createBasketCard(product: IProduct, index: number): HTMLElement {
-    const template = getTemplate('card-basket');
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+  const template = getTemplate('card-basket');
+  const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
-    const card = new CardBasket(element, (id) => {
-        events.emit('basket:remove', { id });
-    });
+  const card = new CardBasket(element, (id) => {
+    events.emit('basket:remove', { id });
+  });
 
-    card.render({
-        title: product.title,
-        price: product.price,
-        id: product.id
-    });
-    card.index = index + 1;
+  card.render({
+    title: product.title,
+    price: product.price,
+    id: product.id,
+  });
+  card.index = index + 1;
 
-    return element;
+  return element;
 }
 
-function updateBasketData(): void {
-    const cartItems = cartModel.getAllProducts();
-    const cards = cartItems.map((product, i) => createBasketCard(product, i));
+function updateBasket(): void {
+  const cartItems = cartModel.getAllProducts();
+  const cards = cartItems.map((product, i) => createBasketCard(product, i));
 
-    basketView.items = cards;
-    basketView.total = cartModel.getAllPrice();
-    basketView.disabled = cards.length === 0;
+  basketView.items = cards;
+  basketView.total = cartModel.getAllPrice();
+  basketView.disabled = cards.length === 0;
+  headerView.counter = cartModel.getAllCount();
 }
 
-function updateBasketCounter(): void {
-    headerView.counter = cartModel.getAllCount();
+function renderCatalog(): void {
+  const products = productsModel.getAllProduct();
+  const cards = products.map(product => createCatalogCard(product));
+  catalogView.items = cards;
 }
 
-function openBasket(): void {
-    updateBasketData();
-    modalView.content = basketView.render();
-    modalView.open();
-}
+events.on('products:changed', renderCatalog);
 
-function openOrderForm(): void {
-    const template = getTemplate('order');
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-
-    currentOrderForm = new OrderForm(element,
-        (field, value) => {
-            events.emit('order:change', { field, value });
-        },
-        () => events.emit('order:submit')
-    );
-
-    const buyer = customerModel.getAllData();
-    currentOrderForm.payment = buyer.payment as 'card' | 'cash' | null;
-    currentOrderForm.address = buyer.address;
-
-    const orderErrors = customerModel.validateOrder();
-    currentOrderForm.valid = Object.keys(orderErrors).length === 0;
-    currentOrderForm.errors = Object.values(orderErrors).join(', ');
-
-    modalView.content = currentOrderForm.element;
-    modalView.open();
-}
-
-function openContactsForm(): void {
-    const template = getTemplate('contacts');
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-
-    currentContactsForm = new ContactsForm(element,
-        (field, value) => {
-            events.emit('contacts:change', { field, value });
-        },
-        () => events.emit('contacts:submit')
-    );
-
-    const buyer = customerModel.getAllData();
-    currentContactsForm.email = buyer.email;
-    currentContactsForm.phone = buyer.phone;
-
-    const contactsErrors = customerModel.validateContacts();
-    currentContactsForm.valid = Object.keys(contactsErrors).length === 0;
-    currentContactsForm.errors = Object.values(contactsErrors).join(', ');
-
-    modalView.content = currentContactsForm.element;
-    modalView.open();
-}
-
-function resetAfterSuccess(): void {
-    basketView.items = [];
-    basketView.total = 0;
-    basketView.disabled = true;
-    updateBasketData();
-    updateBasketCounter();
-}
-
-function showSuccess(total: number): void {
-    const successTemplate = getTemplate('success');
-    const successElement = successTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    const successView = new Success(successElement, () => {
-        modalView.close();
-        resetAfterSuccess();
-    });
-
-    successView.total = total;
-    modalView.content = successView.render();
-    modalView.open();
-}
-
-function renderCatalog(products: IProduct[]): void {
-    const cards = products.map(product => createCatalogCard(product));
-    catalogView.items = cards;
-}
-
-async function loadProducts(): Promise<void> {
-    try {
-        const data = await serverApi.getAllProducts();
-        productsModel.setAllProducts(data.items);
-        renderCatalog(productsModel.getAllProduct());
-        updateBasketCounter();
-    } catch (error) {
-        console.error('Ошибка загрузки товаров:', error);
-    }
-}
-
-// ============================================
-// 3. ПОДПИСКИ НА СОБЫТИЯ
-// ============================================
 events.on('card:select', (data: { id: string }) => {
-    const product = productsModel.getProductById(data.id);
-    if (product) {
-        productsModel.saveProduct(product);
-    }
+  const product = productsModel.getProductById(data.id);
+  if (product) {
+    productsModel.saveProduct(product);
+  }
 });
 
-events.on('basket:open', () => {
-    openBasket();
+events.on('product:changed', () => {
+  const product = productsModel.getChosenProduct();
+  if (!product) return;
+
+  previewCard.render({
+    title: product.title,
+    price: product.price,
+    category: product.category,
+    image: CDN_URL + product.image.replace('.svg', '.png'),
+    description: product.description,
+  });
+
+  const isInCart = cartModel.checkProduct(product.id);
+  previewCard.buttonText = isInCart ? 'Удалить из корзины' : 'В корзину';
+  previewCard.disabled = product.price === null;
+
+  modalView.content = previewCard.render();
+  modalView.open();
 });
 
-events.on('basket:remove', (data: { id: string }) => {
-    const product = cartModel.getAllProducts().find(p => p.id === data.id);
-    if (product) {
-        cartModel.deleteProduct(product);
-        updateBasketData();
+events.on('card:toggle', (data: { id: string }) => {
+  const product = productsModel.getProductById(data.id);
+  if (product) {
+    if (cartModel.checkProduct(product.id)) {
+      cartModel.deleteProduct(product);
+    } else {
+      cartModel.setNewProduct(product);
     }
-});
-
-events.on('order:change', ({ field, value }: { field: string; value: string }) => {
-    if (field === 'payment') {
-        customerModel.setPayment(value as 'card' | 'cash');
-    }
-    if (field === 'address') {
-        customerModel.setAddress(value);
-    }
-});
-
-events.on('contacts:change', ({ field, value }: { field: string; value: string }) => {
-    if (field === 'email') {
-        customerModel.setEmail(value);
-    }
-    if (field === 'phone') {
-        customerModel.setPhone(value);
-    }
-});
-
-events.on('order:submit', () => {
-    openContactsForm();
-});
-
-events.on('contacts:submit', async () => {
-    const errors = customerModel.validateContacts();
-    if (Object.keys(errors).length > 0) {
-        return;
-    }
-
-    const orderData: IOrderData = {
-        payment: customerModel.getPayment(),
-        email: customerModel.getEmail(),
-        phone: customerModel.getPhone(),
-        address: customerModel.getAddress(),
-        total: cartModel.getAllPrice(),
-        items: cartModel.getAllProducts().map(p => p.id)
-    };
-
-    try {
-        const result = await serverApi.sendDataOnServer(orderData);
-        showSuccess(result.total);
-
-        cartModel.deleteAll();
-        customerModel.deleteAllData();
-        updateBasketCounter();
-        updateBasketData();
-    } catch (error) {
-        console.error('Ошибка отправки заказа:', error);
-        if (currentContactsForm) {
-            currentContactsForm.errors = 'Ошибка при оформлении заказа';
-        }
-    }
-});
-
-events.on('product:changed', (product: IProduct) => {
-    const template = getTemplate('card-preview');
-    const element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    const isInCart = cartModel.checkProduct(product.id);
-    const buttonText = isInCart ? 'Удалить из корзины' : 'В корзину';
-
-    const previewCard = new CardPreview(element, () => {
-        if (cartModel.checkProduct(product.id)) {
-            cartModel.deleteProduct(product);
-        } else {
-            cartModel.setNewProduct(product);
-        }
-        updateBasketCounter();
-        updateBasketData();
-        previewCard.buttonText = cartModel.checkProduct(product.id) ? 'Удалить из корзины' : 'В корзину';
-    });
-
-    previewCard.render({
-        title: product.title,
-        price: product.price,
-        category: product.category,
-        image: CDN_URL + product.image.replace('.svg', '.png'),
-        description: product.description
-    });
-    previewCard.buttonText = buttonText;
-    previewCard.disabled = product.price === null;
-
-    modalView.content = previewCard.render();
-    modalView.open();
+  }
 });
 
 events.on('cart:changed', () => {
-    updateBasketCounter();
-    updateBasketData();
+  updateBasket();
+
+  if (modalView.isOpen) {
+    const product = productsModel.getChosenProduct();
+    if (product) {
+      const isInCart = cartModel.checkProduct(product.id);
+      previewCard.buttonText = isInCart ? 'Удалить из корзины' : 'В корзину';
+    }
+  }
 });
 
-events.on('customer:changed', (data: IBuyer) => {
-    if (currentOrderForm && modalView.isOpen) {
-        currentOrderForm.payment = data.payment as 'card' | 'cash' | null;
-        currentOrderForm.address = data.address;
-
-        const orderErrors = customerModel.validateOrder();
-        currentOrderForm.valid = Object.keys(orderErrors).length === 0;
-        currentOrderForm.errors = Object.values(orderErrors).join(', ');
-    }
-
-    if (currentContactsForm && modalView.isOpen) {
-        currentContactsForm.email = data.email;
-        currentContactsForm.phone = data.phone;
-
-        const contactsErrors = customerModel.validateContacts();
-        currentContactsForm.valid = Object.keys(contactsErrors).length === 0;
-        currentContactsForm.errors = Object.values(contactsErrors).join(', ');
-    }
+events.on('basket:remove', (data: { id: string }) => {
+  const product = cartModel.getAllProducts().find(p => p.id === data.id);
+  if (product) {
+    cartModel.deleteProduct(product);
+  }
 });
 
-// ============================================
-// 4. ЗАПУСК
-// ============================================
+events.on('basket:open', () => {
+  modalView.content = basketView.render();
+  modalView.open();
+});
+
+events.on('order:open', () => {
+  modalView.content = orderForm.render();
+  modalView.open();
+});
+
+events.on('order:change', ({ field, value }: { field: string; value: string }) => {
+  if (field === 'payment') customerModel.setPayment(value as 'card' | 'cash');
+  if (field === 'address') customerModel.setAddress(value);
+});
+
+events.on('contacts:change', ({ field, value }: { field: string; value: string }) => {
+  if (field === 'email') customerModel.setEmail(value);
+  if (field === 'phone') customerModel.setPhone(value);
+});
+
+events.on('order:submit', () => {
+  const errors = customerModel.validate();
+  if (errors.payment || errors.address) return;
+  modalView.content = contactsForm.render();
+});
+
+events.on('contacts:submit', async () => {
+  const errors = customerModel.validate();
+  if (errors.email || errors.phone) {
+    contactsForm.errors = [errors.email, errors.phone].filter(Boolean).join(', ');
+    return;
+  }
+
+  const orderData: IOrderData = {
+    payment: customerModel.getPayment(),
+    email: customerModel.getEmail(),
+    phone: customerModel.getPhone(),
+    address: customerModel.getAddress(),
+    total: cartModel.getAllPrice(),
+    items: cartModel.getAllProducts().map(p => p.id),
+  };
+
+  try {
+    const result = await serverApi.sendDataOnServer(orderData);
+
+    const successTemplate = getTemplate('success');
+    const successElement = successTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    const successView = new Success(successElement, () => modalView.close());
+    successView.total = result.total;
+    modalView.content = successView.render();
+
+    cartModel.deleteAll();
+    customerModel.deleteAllData();
+  } catch (error) {
+    console.error('Ошибка отправки заказа:', error);
+    contactsForm.errors = 'Ошибка при оформлении заказа';
+  }
+});
+
+events.on('customer:changed', () => {
+  const data = customerModel.getAllData();
+  const errors = customerModel.validate();
+
+  orderForm.payment = data.payment as 'card' | 'cash' | null;
+  orderForm.address = data.address;
+  contactsForm.email = data.email;
+  contactsForm.phone = data.phone;
+
+  orderForm.valid = !errors.payment && !errors.address;
+  orderForm.errors = [errors.payment, errors.address].filter(Boolean).join(', ');
+
+  contactsForm.valid = !errors.email && !errors.phone;
+  contactsForm.errors = [errors.email, errors.phone].filter(Boolean).join(', ');
+});
+
+async function loadProducts(): Promise<void> {
+  try {
+    const data = await serverApi.getAllProducts();
+    productsModel.setAllProducts(data.items);
+  } catch (error) {
+    console.error('Ошибка загрузки товаров:', error);
+  }
+}
+
 loadProducts();

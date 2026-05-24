@@ -51,19 +51,15 @@ export class Customer {
         this.events.emit('customer:changed', this.getAllData());
     }
 
-    validateOrder(): ValidationErrors {
-        const errors: ValidationErrors = {};
-        if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-        if (!this.address || this.address.trim() === '') errors.address = 'Укажите адрес доставки';
-        return errors;
-    }
-
-    validateContacts(): ValidationErrors {
-        const errors: ValidationErrors = {};
-        if (!this.email || this.email.trim() === '') errors.email = 'Укажите email';
-        if (!this.phone || this.phone.trim() === '') errors.phone = 'Укажите номер телефона';
-        return errors;
-    }
+   
+validate(): ValidationErrors {
+    const errors: ValidationErrors = {};
+    if (!this.payment) errors.payment = 'Не выбран вид оплаты';
+    if (!this.address || this.address.trim() === '') errors.address = 'Укажите адрес доставки';
+    if (!this.email || this.email.trim() === '') errors.email = 'Укажите email';
+    if (!this.phone || this.phone.trim() === '') errors.phone = 'Укажите номер телефона';
+    return errors;
+}
 
     getPayment(): TPayment {
         return this.payment;

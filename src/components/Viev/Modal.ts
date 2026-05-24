@@ -32,7 +32,7 @@ export class Modal extends Component<object> {
 
     close(): void {
         if (this._modal) {
-            this._modal.classList.remove('modal_active', 'modal_preview', 'modal_form');
+            this._modal.classList.remove('modal_active');
         }
     }
 
@@ -48,25 +48,5 @@ export class Modal extends Component<object> {
 
     get isOpen(): boolean {
         return this._modal?.classList.contains('modal_active') || false;
-    }
-
-    set previewMode(enabled: boolean) {
-        if (this._modal) {
-            if (enabled) {
-                this._modal.classList.add('modal_preview');
-            } else {
-                this._modal.classList.remove('modal_preview');
-            }
-        }
-    }
-
-    set formMode(enabled: boolean) {
-        if (this._modal) {
-            if (enabled) {
-                this._modal.classList.add('modal_form');
-            } else {
-                this._modal.classList.remove('modal_form');
-            }
-        }
     }
 }

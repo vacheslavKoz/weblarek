@@ -10,7 +10,7 @@ export abstract class Form<T> extends Component<T> {
         this._submitButton = this.container.querySelector('.button[type="submit"]');
         this._errorsContainer = this.container.querySelector('.form__errors');
 
-        this.element.addEventListener('submit', (e) => {
+        this.container.addEventListener('submit', (e) => {
             e.preventDefault();
             this.onSubmitCallback?.();
         });
@@ -28,11 +28,8 @@ export abstract class Form<T> extends Component<T> {
         }
     }
 
-    get element(): HTMLFormElement {
-        if (this.container instanceof DocumentFragment) {
-            return this.container.children[0] as HTMLFormElement;
-        }
-        return this.container as HTMLFormElement;
+    render(): HTMLElement {
+        return this.container;
     }
 
     set onSubmit(callback: () => void) {
